@@ -1,0 +1,13 @@
+name = "DiscreteChoice"
+uuid = "8598d5c9-0787-40f6-a200-e6e7609cca7e"
+authors = ["Kaida Zhang <zhangkaida.xjtu@gmail.com> and contributors"]
+version = "0.1.0"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
