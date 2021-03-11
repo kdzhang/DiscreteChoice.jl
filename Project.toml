@@ -3,6 +3,13 @@ uuid = "8598d5c9-0787-40f6-a200-e6e7609cca7e"
 authors = ["Kaida Zhang <zhangkaida.xjtu@gmail.com> and contributors"]
 version = "0.1.0"
 
+[deps]
+ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
+JLD2 = "033835bb-8acc-5ee8-8aae-3f567f8a3819"
+Optim = "429524aa-4258-5aef-a3af-852621145aeb"
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
+StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
+
 [compat]
 julia = "1"
 
