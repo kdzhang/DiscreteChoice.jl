@@ -1,6 +1,7 @@
 module DiscreteChoice
 
-export greet, llk_sample, ccp, opt_homo, opt_hetero, opt_main!, DCModel
+export greet, llk_sample, ccp, opt_homo, opt_hetero, opt_main!, 
+    DCModel, updateCoef!
 
 greet() = print("Hello World!")
 # Write your package code here.

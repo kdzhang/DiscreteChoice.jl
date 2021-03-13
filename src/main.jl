@@ -100,5 +100,6 @@ function opt_main!(model::DCModel; init_guess::Vector, n_sim=5)
         model.optResults = opt_homo(model.Y, model.X, init_guess)
     else 
         model.optResults = opt_hetero(model.Y, model.X, init_guess, n_sim)
+    end
     return model
 end
