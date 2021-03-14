@@ -1,29 +1,49 @@
-# In this simulation, we allow different products to have different mean utilities
+using DiscreteChoice
+using Optim
+using ForwardDiff
+using Random, StatsBase
 
-using Random
-using Distributions
-using StatsBase
-using JLD2
+#################
+# Simulate data
+#################
 
 Random.seed!(42)
 
-N = 10_000  # num of consumers
-J = 10      # num of products
-K = 5       # num of char dim
+N = 10000
+K1 = 1
+K2 = 5
+L = 4
+J = 10
 
-X = randn(J, K) # Product characteristics
-ξ = rand(J-1)
-β = [1, -2, 3, -4, 5] .* 0.1
-@assert length(β) == K
+Y = rand(1:J,N)
+X1 = randn(N,J,K1)
+X2 = randn(J,K2)
+D = randn(N,L)
 
-index = X*β .+ vcat(0, ξ)
-y_prob = exp.(index) ./ sum(exp.(index))
-y_id = 1:J
+α = randn(K1)
+Π = randn(K2, L)
+ξ_all = vcat(0, rand(J-1))
+ξ = ξ_all[2:end]
 
-Y = sample(y_id, Weights(y_prob), N)
+Py = DiscreteChoice.y_prob(X1,X2,D, α, Π, ξ_all)
+Y = zeros(Int64, N)
+for i in eachindex(Y)
+    Y[i] = sample(1:J, Weights(Py[i,:]))
+end
+[mean(Y.==i) for i in 1:J]
 
-y_prob_emp = [mean(Y.==i) for i in 1:J ]
-y_prob .- y_prob_emp |> maximum
 
-@save "example/data/homo.jld2" Y X β ξ
+@code_warntype DiscreteChoice.y_prob(X1,X2,D, α, Π, ξ_all)
 
+
+#######################
+# Estimate the model
+#######################
+
+model_homo = DCModel(Y,X1,X2,D; hetero_preference=false)
+opt_main!(model_homo; init_guess = randn(K1+K2*L+J-1))
+updateCoef!(model_homo)
+
+model_homo.α .- α
+model_homo.Π .- Π
+model_homo.ξ .- ξ

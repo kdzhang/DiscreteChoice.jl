@@ -2,22 +2,34 @@ using StatsBase
 using ForwardDiff
 using Optim
 
-"Homogeneous Preference MLE"
-function llk_sample(Y::Vector, X::Matrix, β::Vector, ξ::Vector)
-    # Y: N-by-1
-    # X: J-by-K
-    # β: K-by-1
-    # ξ: (J-1)-by-1, first normalized to 0
+function y_prob(X1::Array{T,3}, X2::Matrix{T}, D::Matrix{T}, α::Vector{T}, Π::Matrix{T}, 
+    ξ_all::Vector{T}) where T
+    N, J, K1, K2, L = get_dim(X1, X2, D)
+    @assert length(ξ_all) == J
+    y_prob = zeros(T, N, J)
+    for (i, d) in enumerate(eachrow(D))
+        index = exp.(X2*(Π*d) .+ X1[i,:,:]*α .+ ξ_all) # J-by-1
+        y_prob[i,:] = index ./ sum(index)
+    end
+    return y_prob
+end
 
-    ξ = vcat(zero(eltype(ξ)), ξ)
-    index = exp.(X*β .+ ξ)
-    y_prob = index ./ sum(index)
+function llk_sample(Y::Vector, X1::Array, X2::Matrix, D::Matrix, 
+    α::Vector{T}, Π::Matrix{T}, ξ::Vector{T}) where T
+
+    N, J, K1, K2, L = get_dim(X1, X2, D)
+    ξ_all = vcat(zero(eltype(ξ)), ξ)
+    @assert length(ξ_all) == J
+
     llk = 0.0
-    for i in eachindex(Y)
+    for (i, d) in enumerate(eachrow(D))
+        index = exp.(X2*(Π*d) .+ X1[i,:,:]*α .+ ξ_all) # J-by-1
+        y_prob = index ./ sum(index)
         llk += log(y_prob[Y[i]])
     end
     return llk
 end
+
 
 """
 CCP approach for homogeneous preference
@@ -72,14 +84,13 @@ function llk_sample(Y::Vector, X::Matrix, β_mean::Vector{T}, ξ::Vector{T}, σ:
     return llk
 end
 
-
-
-function opt_homo(Y, X, init_guess)
-    J, K = size(X)
-    N = length(Y)
-    f = para -> -llk_sample(Y, X, para[1:K], para[K+1:end]) # take negative to minimize
-    # g = TwiceDifferentiable(f, init_guess; autodiff=:forward)
-    # opt = Optim.optimize(g, init_guess)
+function opt_homo(Y, X1, X2, D, init_guess)
+    N, J, K1, K2, L = get_dim(X1, X2, D)
+    f = para -> -llk_sample(Y, X1, X2, D, 
+        para[1:K1], # α 
+        reshape(para[K1+1:K1+K2*L], K2, L), # Π
+        para[K1+K2*L+1:end]) # ξ
+        # take negative to minimize
     opt = Optim.optimize(f, init_guess, LBFGS(); autodiff=:forward)
     return opt
 end
@@ -97,7 +108,7 @@ end
 
 function opt_main!(model::DCModel; init_guess::Vector, n_sim=5)
     if !model.hetero_preference
-        model.optResults = opt_homo(model.Y, model.X, init_guess)
+        model.optResults = opt_homo(model.Y, model.X1, model.X2, model.D, init_guess)
     else 
         model.optResults = opt_hetero(model.Y, model.X, init_guess, n_sim)
     end
