@@ -14,6 +14,8 @@ function y_prob(X1::Array{T,3}, X2::Matrix{T}, D::Matrix{T}, α::Vector{T}, Π::
     return y_prob
 end
 
+# TODO: need to add a y_prob for hetero preference y_prob
+
 function llk_sample(Y::Vector, X1::Array, X2::Matrix, D::Matrix, 
     α::Vector{T}, Π::Matrix{T}, ξ::Vector{T}) where T
 
@@ -25,6 +27,26 @@ function llk_sample(Y::Vector, X1::Array, X2::Matrix, D::Matrix,
     for (i, d) in enumerate(eachrow(D))
         index = exp.(X2*(Π*d) .+ X1[i,:,:]*α .+ ξ_all) # J-by-1
         y_prob = index ./ sum(index)
+        llk += log(y_prob[Y[i]])
+    end
+    return llk
+end
+
+function llk_sample(Y::Vector, X1::Array, X2::Matrix, D::Matrix, 
+    α::Vector{T}, Π::Matrix{T}, ξ::Vector{T}, σ::Vector{T}, n_sim::Integer) where T
+
+    N, J, K1, K2, L = get_dim(X1, X2, D)
+    ξ_all = vcat(zero(eltype(ξ)), ξ)
+    @assert length(ξ_all) == J
+
+    llk = 0.0
+    for (i, d) in enumerate(eachrow(D))
+        y_prob = zeros(T, n_sim, J)
+        for i_sim = 1:n_sim
+            index = exp.(X2*(Π*d .+ randn(K).*σ) .+ X1[i,:,:]*α .+ ξ_all) # J-by-1
+            y_prob[i_sim,:] = index ./ sum(index)
+        end
+        y_prob = mean(y_prob, dims=1)
         llk += log(y_prob[Y[i]])
     end
     return llk
@@ -106,7 +128,7 @@ function opt_hetero(Y, X, init_guess, n_sim)
 end
 
 
-function opt_main!(model::DCModel; init_guess::Vector, n_sim=5)
+function estDCModel!(model::DCModel; init_guess::Vector, n_sim=5)
     if !model.hetero_preference
         model.optResults = opt_homo(model.Y, model.X1, model.X2, model.D, init_guess)
     else 

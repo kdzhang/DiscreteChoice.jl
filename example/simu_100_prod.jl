@@ -7,13 +7,15 @@ using Random, StatsBase
 # Simulate data
 #################
 
+# Simulate J=100 case
+
 Random.seed!(42)
 
-N = 10000
+N = 50_000
 K1 = 1
 K2 = 5
 L = 4
-J = 10
+J = 100
 
 Y = rand(1:J,N)
 X1 = randn(N,J,K1)
@@ -30,10 +32,8 @@ Y = zeros(Int64, N)
 for i in eachindex(Y)
     Y[i] = sample(1:J, Weights(Py[i,:]))
 end
-[mean(Y.==i) for i in 1:J]
+[mean(Y.==i) for i in 1:J] |> minimum
 
-
-@code_warntype DiscreteChoice.y_prob(X1,X2,D, α, Π, ξ_all)
 
 
 #######################

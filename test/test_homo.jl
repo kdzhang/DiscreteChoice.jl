@@ -23,14 +23,14 @@ model_1 = DCModel(Y, X; hetero_preference=false)
 model_2 = DCModel(Y, X; hetero_preference=false)
 
 # Start from true value
-opt_main!(model_1; init_guess = vcat(β, ξ))
+estDCModel!(model_1; init_guess = vcat(β, ξ))
 abs.(Optim.minimizer(model_1.optResults) .- vcat(β, ξ)) |> maximum
 updateCoef!(model_1)
 
 P .- y_prob(model_1.X, model_1.β, model_1.ξ)
 
 # Start from random value
-opt_main!(model_2; init_guess = randn(length(β)+length(ξ)))
+estDCModel!(model_2; init_guess = randn(length(β)+length(ξ)))
 updateCoef!(model_2)
 
 y_emp = y_prob(model_2.X, model_2.β, model_2.ξ)

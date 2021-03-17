@@ -7,7 +7,7 @@ using Optim
 
 model = DCModel(Y,X; hetero_preference=false)
 
-opt_main!(model; init_guess = vcat(β, ξ))
+estDCModel!(model; init_guess = vcat(β, ξ))
 
 res = Optim.minimizer(model.optResults) |> copy
 res .- vcat(β, ξ) |> maximum
