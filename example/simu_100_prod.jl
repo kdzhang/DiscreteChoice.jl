@@ -45,6 +45,6 @@ estDCModel!(model_homo; init_guess = vcat(α, vec(Π), ξ))
 # estDCModel!(model_homo; init_guess = randn(K1+K2*L+J-1))
 updateCoef!(model_homo)
 
-model_homo.α .- α
-model_homo.Π .- Π
-model_homo.ξ .- ξ
+@show model_homo.α .- α
+@show model_homo.Π .- Π
+@show model_homo.ξ .- ξ
