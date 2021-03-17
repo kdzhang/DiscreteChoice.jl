@@ -34,14 +34,15 @@ for i in eachindex(Y)
 end
 [mean(Y.==i) for i in 1:J] |> minimum
 
-
+DiscreteChoice.llk_sample(Y, X1, X2, D, α, Π, ξ)
 
 #######################
 # Estimate the model
 #######################
 
 model_homo = DCModel(Y,X1,X2,D; hetero_preference=false)
-estDCModel!(model_homo; init_guess = randn(K1+K2*L+J-1))
+estDCModel!(model_homo; init_guess = vcat(α, vec(Π), ξ))
+# estDCModel!(model_homo; init_guess = randn(K1+K2*L+J-1))
 updateCoef!(model_homo)
 
 model_homo.α .- α
