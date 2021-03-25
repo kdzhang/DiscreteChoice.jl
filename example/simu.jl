@@ -41,7 +41,7 @@ end
 #######################
 
 model_homo = DCModel(Y,X1,X2,D; hetero_preference=false)
-estDCModel!(model_homo; init_guess = randn(K1+K2*L+J-1))
+estDCModel!(model_homo; init_guess = initial_guess(model_homo))
 updateCoef!(model_homo)
 
 model_homo.α .- α

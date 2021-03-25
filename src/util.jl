@@ -7,7 +7,14 @@ function get_dim(X1::Array{T,3}, X2::Matrix{T}, D::Matrix{T}) where T
 end
 
 function get_kdim(X1::Array{T,3}, X2::Matrix{T}, D::Matrix{T}) where T
-    N, J, K1, K2 = get_dim(X1, X2, D)
-    kdim = K1+K2+J-1
-    return get_kdim
+    N, J, K1, K2, L = get_dim(X1, X2, D)
+    kdim = K1+K2*L+J-1
+    return kdim
+end
+
+function initial_guess(m::DCModel)
+    if !m.hetero_preference
+        init_guess = randn(get_kdim(m.X1, m.X2, m.D))
+    end
+    return init_guess
 end
