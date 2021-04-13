@@ -10,7 +10,7 @@ using ProfileView
 
 Random.seed!(42)
 
-N = 20000
+N = 50000
 K1 = 1
 K2 = 5
 L = 4
@@ -34,11 +34,11 @@ end
 [mean(Y.==i) for i in 1:J]
 
 
-@time llk_sample_fullset(Y, X1, X2, D, α, Π, ξ)
+@time llk_sample(Y, X1, X2, D, α, Π, ξ)
 
 # Try with random choice subset
 C = DiscreteChoice.get_random_set(J, 5, Y)
-@time llk_sample_subset(Y, X1, X2, D, C, α, Π, ξ)
+@time llk_sample(Y, X1, X2, D, C, α, Π, ξ)
 
 #######################
 # Estimate the model
@@ -51,17 +51,3 @@ updateCoef!(model_homo)
 model_homo.α .- α
 model_homo.Π .- Π
 model_homo.ξ .- ξ
-
-
-# Notice that if we start from the true value, it gives correct results
-# but if we start from random value, the results are very off, even for merely 10 parameters
-
-para_true = vcat(α, Π[:], ξ)
-model_homo_2 = DCModel(Y,X1,X2,D; hetero_preference=false)
-# estDCModel!(model_homo_2; init_guess = initial_guess(model_homo_2), subset = C)
-estDCModel!(model_homo_2; init_guess = para_true, subset = C)
-updateCoef!(model_homo_2)
-
-model_homo_2.α .- α
-model_homo_2.Π .- Π
-model_homo_2.ξ .- ξ

@@ -4,6 +4,8 @@ mutable struct DCModel
     X1::Array{Float64,3} # N-J-K1: indiv-prod-char
     X2::Matrix{Float64} # J-K2: product char
     D::Matrix{Float64} # N-L: demographics
+    C::Vector{Vector{Int64}} # N: choice set of each individual, 
+                             # can be actual constraints or random draws to facilitate est
 
     # Parameters
     hetero_preference::Bool # unobservable hetero preference
@@ -27,6 +29,7 @@ function DCModel(Y, X1::Array{T,3}, X2::Matrix{T}, D::Matrix{T}; hetero_preferen
     @assert J==J2
     @assert N==N2==N3
 
+    C = Vector{Vector{eltype(Y)}}(undef, N)
 
     # Initialize coef
     α = zeros(T, K1)
@@ -40,7 +43,7 @@ function DCModel(Y, X1::Array{T,3}, X2::Matrix{T}, D::Matrix{T}; hetero_preferen
 
     optResults = nothing
 
-    DCModel(Y,X1,X2,D, hetero_preference, α, Π, ξ, σ, optResults)
+    DCModel(Y,X1,X2,D,C, hetero_preference, α, Π, ξ, σ, optResults)
 end
 
 function updateCoef!(model::DCModel)
